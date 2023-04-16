@@ -46,7 +46,7 @@
 ## About The Project
 
 <div align="center">
-    <img src="img/usage.png" alt="Logo" width="800" height="100">
+    <img src="img/usage.png" alt="useSS" width="800" height="100">
 </div>
 
 Project have few scripts which help me in making weekly raports.
