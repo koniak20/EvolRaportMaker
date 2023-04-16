@@ -5,35 +5,23 @@ import json
 import csv
 import xlwings as xw
 import requests
-import platform
 import subprocess
 from tqdm import tqdm
 
 import datetime
 
-DATEg = datetime.date.today()
+TODAY = datetime.date.today()
 RIGHT_ALIGNMENT = -4152
 
-def getLocation(isUnix, spider):
-    if isUnix:
-        result = f"/home/koniak20/Desktop/Raport/EvolutionRaport/spiders/{spider}"
-    else:
-        result = f"spiders\\{spider}"
+def get_location(spider):
+    result = f"spiders\\{spider}"
     return result
 
-def getSpiders(isUnix):
-    if isUnix:
-        spiders = subprocess.check_output("ls /home/koniak20/Desktop/Raport/EvolutionRaport/spiders", shell=True).decode("utf-8")
-    else:
-        spiders = subprocess.run(["powershell", "-Command","ls spiders | select name | ft -hide"],shell=True, stdout=subprocess.PIPE).stdout.decode("utf-8").replace("\r","").replace(" ","")
-    result = spiders.split("\n")
-    result = list(filter(None, result))
-    return result
+def get_spiders():
+    spiders = os.listdir("spiders")
+    return spiders
 
-def checkSystem():
-    return platform.system() != "Windows"
-
-def getCSV (CSV_URL):
+def get_CSV (CSV_URL):
     with requests.Session() as ses:
         download = ses.get(CSV_URL)
         decoded_content = download.content.decode('utf-8', errors='ignore')
@@ -42,8 +30,8 @@ def getCSV (CSV_URL):
     result = [[obiekt.replace(',','.') for obiekt in row]for row in content]
     return result
 
-def fillTGEenergy ():
-    DATE = DATEg - datetime.timedelta(days=7)
+def fill_TGE_energy():
+    DATE = TODAY - datetime.timedelta(days=7)
     file = open('TGEenergy.json',)
     data = json.load(file)
     file.close()
@@ -60,8 +48,8 @@ def fillTGEenergy ():
     TGE.range("B6").options(transpose = True).value = price
     TGE.range("O6").value = hours
 
-def fillTGEgas():
-    DATE = DATEg - datetime.timedelta(days=7)
+def fill_TGE_gas():
+    DATE = TODAY - datetime.timedelta(days=7)
     file = open('TGEgas.json',)
     data = json.load(file)
     file.close()
@@ -75,18 +63,18 @@ def fillTGEgas():
     TGE.range("B17").options(transpose = True).value = values
     TGE.range("C7").options(transpose = True).value = price
 
-def fillGPI():
+def fill_GPI():
     file = open('GPI.json',)
     data = json.load(file)
     file.close()
     excel_energy = xw.Book('ENERGIA.xlsx')
-    Wylaczenia = excel_energy.sheets['Wylaczenia elektrowni']
-    Wylaczenia.range("U7").options(transpose = True).value = Wylaczenia.range("T7:T9").options(transpose = True).value
-    Wylaczenia.range("D7").value = data[0]["planned"] 
-    Wylaczenia.range("D8").value = data[0]["notplanned"] 
-    Wylaczenia.range("D9").value = data[0]["summaric_leaks"]
+    shutdowns = excel_energy.sheets['Wylaczenia elektrowni']
+    shutdowns.range("U7").options(transpose = True).value = shutdowns.range("T7:T9").options(transpose = True).value
+    shutdowns.range("D7").value = data[0]["planned"] 
+    shutdowns.range("D8").value = data[0]["notplanned"] 
+    shutdowns.range("D9").value = data[0]["summaric_leaks"]
 
-def getDatesToBASE(quantity):
+def get_dates_to_base(quantity):
     dates = []
     date = datetime.date.today()
     date -= datetime.timedelta(days=7)
@@ -96,12 +84,12 @@ def getDatesToBASE(quantity):
         quantity -= 1
     return dates
 
-def fillBASE(excel_file):
+def fill_BASE(excel_file):
     if excel_file == "GAZ.xlsx":
-        datajson = "BASEgas.json"
+        data_json = "BASEgas.json"
     elif excel_file == "Energia.xlsx":
-        datajson = "BASEenergy.json"
-    file = open(datajson)
+        data_json = "BASEenergy.json"
+    file = open(data_json)
     data = json.load(file)
     file.close()
     excel = xw.Book(excel_file)
@@ -122,64 +110,61 @@ def fillBASE(excel_file):
         base.range(f"D{location+i}").paste(paste="formulas")
         base.range(f"G{location-1}").copy()
         base.range(f"G{location+i}").paste(paste="formulas")
-    dates = getDatesToBASE(len(BASE24DKR))
+    dates = get_dates_to_base(len(BASE24DKR))
     base.range(f"A{location}").options(transpose = True).value = dates
 
-def DateURL():
-    DATE = DATEg
-    DATE -= datetime.timedelta(days=1)
+def get_date_to_url():
+    DATE = TODAY - datetime.timedelta(days=1)
     End = DATE.strftime("%Y%m%d")
     DATE -= datetime.timedelta(days=6)
     Begin = DATE.strftime("%Y%m%d")
     DATE += datetime.timedelta(days=7)
     return Begin,End
 
-def fillCrossBorder():
-    begin , end = DateURL()
-    data = getCSV(f'https://www.pse.pl/getcsv/-/export/csv/PL_WYK_WYM/data_od/{begin}/data_do/{end}')
+def fill_cross_border():
+    begin , end = get_date_to_url()
+    data = get_CSV(f'https://www.pse.pl/getcsv/-/export/csv/PL_WYK_WYM/data_od/{begin}/data_do/{end}')
     excel_energy = xw.Book('ENERGIA.xlsx')
-    Wylaczenia = excel_energy.sheets['Wymiana trans']
-    Wylaczenia.range("A20").value = data
+    shutdowns = excel_energy.sheets['Wymiana trans']
+    shutdowns.range("A20").value = data
 
-def fillWindFoto():
-    begin, end = DateURL()
-    data = getCSV(f'https://www.pse.pl/getcsv/-/export/csv/PL_GEN_WIATR/data_od/{begin}/data_do/{end}')
+def fill_wind_foto():
+    begin, end = get_date_to_url()
+    data = get_CSV(f'https://www.pse.pl/getcsv/-/export/csv/PL_GEN_WIATR/data_od/{begin}/data_do/{end}')
     excel_energy = xw.Book('ENERGIA.xlsx')
     generacja = excel_energy.sheets['Generacja wiatr i foto']
     generacja.range("G36").options(transpose = True).value = generacja.range("B36:B37").value
     generacja.range("AI3").value = data
 
-def fillB():
-    fillBASE("GAZ.xlsx")
-    fillBASE("Energia.xlsx")
+def fill_BASES():
+    fill_BASE("GAZ.xlsx")
+    fill_BASE("Energia.xlsx")
 
-def removeJSONS():
+def remove_JSONS():
     files = glob.glob("*.json")
     for file in files:
         os.remove(file)
 
 
 if __name__ == "__main__":
-    isUnix = checkSystem() #Created only for unix and windows
-    spiders = getSpiders(isUnix)
+    spiders = get_spiders()
     DEBUG = 1
     SCRAPE = 1
     try:
-
         DEBUG = int(sys.argv[1])
         print(DEBUG)
     except:
         DEBUG = 0
     if SCRAPE and not DEBUG:
         for spider in tqdm(spiders, desc="Scrapping your data"):
-            spider = getLocation(isUnix,spider)
+            spider = get_location(spider)
             subprocess.call(f"python3 {spider}", shell=True)
     if not DEBUG:
-        filling = [fillB,fillWindFoto,fillCrossBorder,fillGPI,fillTGEgas,fillTGEenergy]
+        filling = [fill_BASES,fill_wind_foto,fill_cross_border,fill_GPI,fill_TGE_gas,fill_TGE_energy]
     else:
-        filling = [fillGPI]
+        filling = [fill_GPI]
     for fill in tqdm(filling, desc="Filling your excel files"):
         fill()
-    removeJSONS()
+    remove_JSONS()
 
 
