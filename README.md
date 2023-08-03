@@ -53,7 +53,6 @@ Project have few scripts which help me in making weekly raports.
 
 - [Scrapy in file](https://stackoverflow.com/questions/21662689/scrapy-run-spider-from-script)
 - [Bash Script](https://stackoverflow.com/questions/18686824/running-scrapy-from-a-shell-script)
-- [That awesome guy which show you word automation]()
 
 ## Notes
 
