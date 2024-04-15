@@ -33,10 +33,10 @@ class BASESpider(scrapy.Spider):
                 DKR.append(float(rows.xpath(f"((//tr)[{i}]/td)[4]/text()").get().replace(',','.').replace('-','0')))
                 MWh.append(float(rows.xpath(f"((//tr)[{i}]/td)[7]/text()").get().replace(',','.').replace('-','0')))
             yield {
-                "BASE24-DKR": DKR[0],
-                "BASE24-MWh" : MWh[0],
-                "BASE25-DKR": DKR[1],
-                "BASE25-MWh" : MWh[1],
+                "BASE25-DKR": DKR[0],
+                "BASE25-MWh" : MWh[0],
+                "BASE26-DKR": DKR[1],
+                "BASE26-MWh" : MWh[1],
             }
         except:
             print("\nSearch did not find anything")

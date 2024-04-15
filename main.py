@@ -94,23 +94,23 @@ def fill_BASE(excel_file):
     file.close()
     excel = xw.Book(excel_file)
     base = excel.sheets["Kontrakty BASE Y-25 Y-24 Y-23"]
+    BASE26DKR = [ i["BASE26-DKR"] for i in data]
+    BASE26MWh = [ int(i["BASE26-MWh"]) for i in data]
     BASE25DKR = [ i["BASE25-DKR"] for i in data]
     BASE25MWh = [ int(i["BASE25-MWh"]) for i in data]
-    BASE24DKR = [ i["BASE24-DKR"] for i in data]
-    BASE24MWh = [ int(i["BASE24-MWh"]) for i in data]
     location = int(base.range("H4").value)
-    base.range(f"B{location}").options(transpose = True).value = BASE25DKR
-    base.range(f"C{location}").options(transpose = True).value = BASE25MWh
-    base.range(f"E{location}").options(transpose = True).value = BASE24DKR
-    base.range(f"F{location}").options(transpose = True).value = BASE24MWh
+    base.range(f"B{location}").options(transpose = True).value = BASE26DKR
+    base.range(f"C{location}").options(transpose = True).value = BASE26MWh
+    base.range(f"E{location}").options(transpose = True).value = BASE25DKR
+    base.range(f"F{location}").options(transpose = True).value = BASE25MWh
     for i in range(len(BASE25DKR)):
-        base.range(f"O{location-1}:Q{location-1}").copy()
-        base.range(f"O{location+i}").paste(paste="formulas")
+        base.range(f"R{location-1}:T{location-1}").copy()
+        base.range(f"R{location+i}").paste(paste="formulas")
         base.range(f"D{location-1}").copy()
         base.range(f"D{location+i}").paste(paste="formulas")
         base.range(f"G{location-1}").copy()
         base.range(f"G{location+i}").paste(paste="formulas")
-    dates = get_dates_to_base(len(BASE24DKR))
+    dates = get_dates_to_base(len(BASE25DKR))
     base.range(f"A{location}").options(transpose = True).value = dates
 
 def get_date_to_url():
@@ -156,14 +156,14 @@ if __name__ == "__main__":
     except:
         DEBUG = 0
     if SCRAPE and not DEBUG:
-        for spider in tqdm(spiders, desc="Scrapping your data"):
+        for spider in tqdm(spiders, desc="Scrapping data"):
             spider = get_location(spider)
             subprocess.call(f"python3 {spider}", shell=True)
     if not DEBUG:
         filling = [fill_BASES,fill_wind_foto,fill_cross_border,fill_GPI,fill_TGE_gas,fill_TGE_energy]
     else:
         filling = [fill_GPI]
-    for fill in tqdm(filling, desc="Filling your excel files"):
+    for fill in tqdm(filling, desc="Filling excel files"):
         fill()
     remove_JSONS()
 

@@ -54,6 +54,7 @@ def makeDates(TGE):
     return today.strftime("%d.%m.%Y")
 
 def putContext(cell): 
+    print(cell)
     dict_name, sheet, sheet_place = cell[0] ,cell[1], cell[2]
     times = 1
     rounding = 2
